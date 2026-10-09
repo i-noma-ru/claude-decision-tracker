@@ -1,6 +1,6 @@
 {
   "name": "decision-tracker",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Keeps decisions mentioned in replies in a band above the prompt until they are written to your decision log.",
   "author": {
     "name": "i-noma-ru",

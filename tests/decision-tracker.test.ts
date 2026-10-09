@@ -2,7 +2,7 @@ import type { Engine } from 'claude-code/testing'
 import { expect, mock, test } from 'claude-code/testing'
 
 import type { Decision } from '../types'
-import { addDecisions, EMPTY_MESSAGE, extractDecisions, formatBand, parseDecisionArgs } from '../hooks/logic'
+import { addDecisions, EMPTY_MESSAGE, extractDecisions, formatBand, formatExpanded, parseDecisionArgs } from '../hooks/logic'
 
 const RUN = { origin: { kind: 'composer' }, presentation: { isFullscreen: false, columns: 120 } } as const
 const TURN = { durationMs: 0, isAborted: false, turnId: 't1', reason: 'answer' } as const
@@ -129,6 +129,55 @@ test('/decisions clear empties the list', async ($, on) => {
 
   expect(done.text).toBe('Cleared all unrecorded decisions.')
   expect(await listed($)).toBe(EMPTY_MESSAGE)
+})
+
+// 8. Pressing the band opens every decision in full; pressing again folds it back to one line
+const BAND = {
+  plugin: 'decision-tracker',
+  surface: 'terminal',
+  component: 'AbovePrompt',
+  props: { hasSurvey: false, isWorking: false, maxRows: 12, bodyColumns: 100, scroll: { offset: 0, bodyRows: 12 }, view: {} },
+} as const
+
+function textsOf(node: unknown): string[] {
+  if (typeof node === 'string') return [node]
+  if (typeof node !== 'object' || node === null) return []
+  const { props = {}, children = [] } = node as { props?: Record<string, unknown>; children?: unknown[] }
+  const own = typeof props.label === 'string' ? [props.label] : []
+  return [...own, ...children.flatMap(textsOf)]
+}
+
+test('pressing the band opens every decision and pressing again folds it', async ($, on) => {
+  mock.clock(on)
+  on('turn.complete', () => ({ text: '' }))
+  on('ui.render', () => ({ type: 'engine', ref: 0 }))
+
+  await $.turn.complete({ ...TURN, answer: 'We decided to use pnpm.\nGoing with B.\nAgreed to ship Friday.' })
+
+  const ui = await $.ui.mount(BAND)
+  expect(textsOf(await ui.drawn())).toEqual(['📝 Unrecorded decisions (3): We decided to use pnpm. / Going with B. … (+1 more)'])
+
+  await $.ui.press({ plugin: 'decision-tracker', key: 'band' })
+  const opened = textsOf(await ui.drawn())
+  expect(opened[0]).toContain('Unrecorded decisions (3) — press to fold')
+  expect(opened.slice(1)).toEqual(['1. We decided to use pnpm.', '2. Going with B.', '3. Agreed to ship Friday.'])
+
+  await $.ui.press({ plugin: 'decision-tracker', key: 'band' })
+  expect(textsOf(await ui.drawn())).toEqual(['📝 Unrecorded decisions (3): We decided to use pnpm. / Going with B. … (+1 more)'])
+  await ui.unmount()
+})
+
+test('the opened band fits maxRows and folds the rest into a count', () => {
+  const list: Decision[] = Array.from({ length: 5 }, (_, i) => ({ text: `Item ${i + 1}.`, at: i }))
+
+  expect(formatExpanded([], 12)).toEqual([])
+  expect(formatExpanded(list, 12)).toHaveLength(6)
+  expect(formatExpanded(list, 4)).toEqual([
+    '📝 Unrecorded decisions (5) — press to fold, /decisions done <n> to remove one',
+    '1. Item 1.',
+    '2. Item 2.',
+    '… (+3 more, see /decisions)',
+  ])
 })
 
 // 7. Band text (pure): two heads of 40 characters, then (+k more); argument parsing

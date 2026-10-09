@@ -118,7 +118,26 @@ export function formatBand(list: readonly Decision[]): string {
   return `📝 Unrecorded decisions (${list.length}): ${heads.join(' / ')}${rest}`
 }
 
-export type DecisionCommand = { kind: 'list' } | { kind: 'clear' } | { kind: 'done'; index: number } | { kind: 'invalid' }
+/** The band once pressed open: a heading, then every decision numbered; what maxRows cannot hold folds into a count. */
+export function formatExpanded(list: readonly Decision[], maxRows: number): string[] {
+  if (list.length === 0) {
+    return []
+  }
+
+  const head = `📝 Unrecorded decisions (${list.length}) — press to fold, /decisions done <n> to remove one`
+  const room = Math.max(0, maxRows - 1)
+  const items = list.map((item, i) => `${i + 1}. ${item.text}`)
+
+  if (items.length <= room) {
+    return [head, ...items]
+  }
+
+  const shown = items.slice(0, Math.max(0, room - 1))
+
+  return [head, ...shown, `… (+${items.length - shown.length} more, see /decisions)`]
+}
+
+export type DecisionCommand ={ kind: 'list' } | { kind: 'clear' } | { kind: 'done'; index: number } | { kind: 'invalid' }
 
 export function parseDecisionArgs(args: string): DecisionCommand {
   const words = args.trim().split(/\s+/).filter(word => word !== '')

@@ -21,7 +21,7 @@ English: [README.md](README.md)
 📝 Unrecorded decisions (2): We decided to use pnpm for the m… / Going with option B for the cache …
 ```
 
-帯はターンをまたいで残り、`record_path` を含むパスへの `Edit`／`Write`／`MultiEdit` が成功すると消えます。`/decisions` で番号つきの一覧、`/decisions done 2` で 1 件だけ消す、`/decisions clear` で全部消す。
+帯を押すと全件が番号つきで折り返して開き、もう一度押すと 1 行に戻ります。帯はターンをまたいで残り、`record_path` を含むパスへの `Edit`／`Write`／`MultiEdit` が成功すると消えます。`/decisions` で番号つきの一覧、`/decisions done 2` で 1 件だけ消す、`/decisions clear` で全部消す。
 
 ## 動作条件
 

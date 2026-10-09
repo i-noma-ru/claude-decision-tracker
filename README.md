@@ -19,7 +19,7 @@ After a reply that contains a decision sentence, a band appears above the prompt
 📝 Unrecorded decisions (2): We decided to use pnpm for the m… / Going with option B for the cache … 
 ```
 
-It stays there, across turns, until an `Edit`, `Write` or `MultiEdit` to a path containing `record_path` succeeds. `/decisions` lists the items with numbers, `/decisions done 2` removes one, `/decisions clear` removes all.
+Press the band to open every decision in full (numbered, wrapped to the width); press it again to fold it back to one line. It stays there, across turns, until an `Edit`, `Write` or `MultiEdit` to a path containing `record_path` succeeds. `/decisions` lists the items with numbers, `/decisions done 2` removes one, `/decisions clear` removes all.
 
 ## Requirements
 

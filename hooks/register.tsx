@@ -2,10 +2,13 @@ import { atom, read, update } from 'claude-code'
 import type { Register } from 'claude-code'
 
 import type { Decision } from '../types'
-import { addDecisions, extractDecisions, formatBand, formatList, isRecordWrite, parseDecisionArgs, readSettings, USAGE } from './logic'
+import { addDecisions, extractDecisions, formatBand, formatExpanded, formatList, isRecordWrite, parseDecisionArgs, readSettings, USAGE } from './logic'
 
 // The band reads from $.state, not a module variable: it survives a hot reload, and a write redraws only the band that read it.
 const decisions = atom({ plugin: 'decision-tracker', key: 'decisions' } as const, [] as Decision[])
+// Pressing the band toggles between the one-line summary and every decision wrapped in full.
+const isExpanded = atom({ plugin: 'decision-tracker', key: 'isExpanded' } as const, false)
+const BAND_KEY = 'band'
 
 export const register: Register = (on, options) => {
   const settings = readSettings(options)
@@ -94,17 +97,34 @@ export const register: Register = (on, options) => {
   })
 
   on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => {
-    const line = formatBand(await read($, decisions))
+    const list = await read($, decisions)
+    const line = formatBand(list)
 
     if (line === '' || e.props.hasSurvey) {
       return next(e)
     }
 
-    const { Box, Text } = $.ui.resolve(e)
+    const { Box, Button, Text } = $.ui.resolve(e)
+    const toggle = () => update($, isExpanded, prev => !prev)
+
+    if (!(await read($, isExpanded))) {
+      return (
+        <Box>
+          <Button key={BAND_KEY} plain label={line} onPress={toggle} />
+        </Box>
+      )
+    }
+
+    const [head, ...rows] = formatExpanded(list, e.props.maxRows)
 
     return (
-      <Box>
-        <Text wrap="truncate-end">{line}</Text>
+      <Box flexDirection="column">
+        <Button key={BAND_KEY} plain label={head ?? ''} onPress={toggle} />
+        {rows.map(row => (
+          <Text key={row} wrap="wrap">
+            {row}
+          </Text>
+        ))}
       </Box>
     )
   })
