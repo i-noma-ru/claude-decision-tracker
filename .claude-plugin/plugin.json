@@ -1,0 +1,55 @@
+{
+  "name": "decision-tracker",
+  "version": "0.1.0",
+  "description": "Keeps decisions mentioned in replies in a band above the prompt until they are written to your decision log.",
+  "author": {
+    "name": "i-noma-ru",
+    "url": "https://github.com/i-noma-ru"
+  },
+  "homepage": "https://github.com/i-noma-ru/claude-decision-tracker",
+  "repository": "https://github.com/i-noma-ru/claude-decision-tracker",
+  "license": "MIT",
+  "keywords": [
+    "claude-code",
+    "mod",
+    "decisions",
+    "band",
+    "ui"
+  ],
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "keywords": {
+      "type": "string",
+      "multiple": true,
+      "title": "Decision keywords",
+      "description": "A sentence that contains any of these (case-insensitive) is kept as a decision.",
+      "default": [
+        "we decided",
+        "decided to",
+        "decision:",
+        "agreed to",
+        "going with",
+        "裁定",
+        "に決めました",
+        "と決めました",
+        "に決定",
+        "を採用します",
+        "を採用しました"
+      ]
+    },
+    "record_path": {
+      "type": "string",
+      "title": "Decision log path",
+      "description": "A successful Edit or Write whose file path contains this string clears the band.",
+      "default": "docs/decisions/"
+    },
+    "max_items": {
+      "type": "number",
+      "title": "Maximum kept decisions",
+      "description": "Oldest decisions are dropped beyond this count.",
+      "default": 20,
+      "min": 1,
+      "max": 50
+    }
+  }
+}
